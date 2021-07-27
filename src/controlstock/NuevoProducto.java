@@ -5,7 +5,9 @@
  */
 package controlstock;
 
-import java.util.List;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -18,16 +20,17 @@ import javax.swing.JOptionPane;
 public class NuevoProducto extends javax.swing.JFrame
 {
     private final JFrame parent;
-    private final List<Producto> listaProductos;
+    private final Database db;
     private boolean huboCambios = false;
+   
     
-    public NuevoProducto(JFrame parent, List<Producto> listaProductos)
+    public NuevoProducto(JFrame parent, Database db)
     {
         initComponents();
         setLocationRelativeTo(null);
         
         this.parent = parent;
-        this.listaProductos = listaProductos;
+        this.db = db;
         
         cancelarButton.requestFocus();
         codigoTextField.setText("" + ControlStockMain.SIGUIENTE_CODIGO);
@@ -259,7 +262,30 @@ public class NuevoProducto extends javax.swing.JFrame
 
     private void crearProductoButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_crearProductoButtonActionPerformed
     {//GEN-HEADEREND:event_crearProductoButtonActionPerformed
-        //validaciones
+        if (!ValidarData())
+        {
+            JOptionPane.showMessageDialog(this, "Error al validar data", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        Producto producto = new Producto();
+        producto.setData(nombreTextField.getText(), descripcionTextField.getText(), 0, Integer.parseInt(stockMinimoTextField.getText()));
+        producto.setStock(Integer.parseInt(stockActualTextField.getText()));
+        
+        
+        try
+        {
+            db.AgregarProducto(producto);
+        } catch (SQLException ex)
+        {
+            JOptionPane.showMessageDialog(this, "SQL Error", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        Volver(false);
+    }//GEN-LAST:event_crearProductoButtonActionPerformed
+
+    private boolean ValidarData()
+    {
         if (stockActualTextField.getText().equals(""))
         {
             stockActualTextField.setText("0");
@@ -277,7 +303,7 @@ public class NuevoProducto extends javax.swing.JFrame
             catch (NumberFormatException e) 
             {
                  JOptionPane.showMessageDialog(this, "Error: El numero ingresado en STOCK ACTUAL no es valido.", "Error", JOptionPane.ERROR_MESSAGE);
-                 return;
+                 return false;
             }
         }
         
@@ -299,42 +325,36 @@ public class NuevoProducto extends javax.swing.JFrame
             catch (NumberFormatException e) 
             {
                  JOptionPane.showMessageDialog(this, "Error: El numero ingresado en STOCK MINIMO no es valido.", "Error", JOptionPane.ERROR_MESSAGE);
-                 return;
+                 return false;
             }
         }
         
-        nombreTextField.setText(nombreTextField.getText().toUpperCase());
-        descripcionTextField.setText(descripcionTextField.getText().toUpperCase());
+        /*nombreTextField.setText(nombreTextField.getText().toUpperCase());
+        descripcionTextField.setText(descripcionTextField.getText().toUpperCase());*/
         
         if (nombreTextField.getText().equals(""))
         {
-            JOptionPane.showMessageDialog(this, "Error: Ingrese un nombre valido para el nuevo producto.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+            JOptionPane.showMessageDialog(this, "Error: Ingrese un nombre valido para el producto.", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
         else
         {
-            Producto aux;
-            for (int i = 0; i < listaProductos.size(); i++)
+            try
             {
-                aux = listaProductos.get(i);
-                if (nombreTextField.getText().equals(aux.getNombre()))
+                if (db.productoExisteByNombre(nombreTextField.getText()))
                 {
-                    JOptionPane.showMessageDialog(this, "Error: Ya existe un producto (cod: " + aux.getCod() + ") con el mismo nombre.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
+                    JOptionPane.showMessageDialog(this, "Error: Ya existe un producto con el mismo nombre.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return false;
                 }
+            } catch (SQLException ex)
+            {
+                return false;
             }
         }
-        
-        //System.out.println("OK");
-        Producto producto = new Producto();
-        producto.setData(nombreTextField.getText(), descripcionTextField.getText(), Integer.parseInt(stockMinimoTextField.getText()));
-        producto.setStock(Integer.parseInt(stockActualTextField.getText()));
-        
-        listaProductos.add(producto);
-        
-        Volver(false);
-    }//GEN-LAST:event_crearProductoButtonActionPerformed
-
+        return true;
+    }
+    
+    
     private void codigoTextFieldActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_codigoTextFieldActionPerformed
     {//GEN-HEADEREND:event_codigoTextFieldActionPerformed
         // TODO add your handling code here:
@@ -362,7 +382,7 @@ public class NuevoProducto extends javax.swing.JFrame
     private void nombreTextFieldKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_nombreTextFieldKeyReleased
     {//GEN-HEADEREND:event_nombreTextFieldKeyReleased
         // TODO add your handling code here:
-        nombreTextField.setText(nombreTextField.getText().toUpperCase());
+        //nombreTextField.setText(nombreTextField.getText().toUpperCase());
         huboCambios = true;
         
     }//GEN-LAST:event_nombreTextFieldKeyReleased
@@ -370,7 +390,7 @@ public class NuevoProducto extends javax.swing.JFrame
     private void descripcionTextFieldKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_descripcionTextFieldKeyReleased
     {//GEN-HEADEREND:event_descripcionTextFieldKeyReleased
         // TODO add your handling code here:
-        descripcionTextField.setText(descripcionTextField.getText().toUpperCase());
+        //descripcionTextField.setText(descripcionTextField.getText().toUpperCase());
         huboCambios = true;
     }//GEN-LAST:event_descripcionTextFieldKeyReleased
 
@@ -403,51 +423,6 @@ public class NuevoProducto extends javax.swing.JFrame
         parent.setVisible(true);
     }
     
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[])
-    {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try
-        {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
-            {
-                if ("Nimbus".equals(info.getName()))
-                {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex)
-        {
-            java.util.logging.Logger.getLogger(NuevoProducto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex)
-        {
-            java.util.logging.Logger.getLogger(NuevoProducto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex)
-        {
-            java.util.logging.Logger.getLogger(NuevoProducto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex)
-        {
-            java.util.logging.Logger.getLogger(NuevoProducto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                new NuevoProducto(null, null).setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelarButton;

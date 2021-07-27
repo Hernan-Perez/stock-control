@@ -5,7 +5,10 @@
  */
 package controlstock;
 
-import java.util.List;
+import java.awt.HeadlessException;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -19,18 +22,26 @@ public class DetalleProducto extends javax.swing.JFrame
 {
     private final JFrame parent;
     private final Producto producto;
-    private final List<Producto> listaProductos;
     private final boolean modificable;
+    private final Database db;
+
+    public DetalleProducto() throws HeadlessException
+    {
+        this.parent = null;
+        this.producto = null;
+        this.modificable = false;
+        this.db = null;
+    }
     
-    public DetalleProducto(JFrame parent, Producto producto, List<Producto> listaProductos, boolean modificable)
+    public DetalleProducto(JFrame parent, Producto producto,boolean modificable, Database db)
     {
         initComponents();
-        setLocationRelativeTo(null); //UNA VEZ ME TIRO ERROR CON ESTO AL INICIAR ESTA VENTANA
+        setLocationRelativeTo(null);
         
         this.parent = parent;
         this.producto = producto;
         this.modificable = modificable;
-        this.listaProductos = listaProductos;
+        this.db = db;
         
         volverButton.requestFocus();
         
@@ -44,26 +55,16 @@ public class DetalleProducto extends javax.swing.JFrame
         {
             guardarCambiosButton.setVisible(false);
             eliminarButton.setVisible(false);
-            
-            //editable = false
+
             nombreTextField.setEditable(false);
             descripcionTextField.setEditable(false);
             stockActualTextField.setEditable(false);
             stockMinimoTextField.setEditable(false);
-            //focusable = false
+            
             nombreTextField.setFocusable(false);
             descripcionTextField.setFocusable(false);
             stockActualTextField.setFocusable(false);
             stockMinimoTextField.setFocusable(false);
-            //enabled = false
-            /*nombreTextField.setEnabled(false);
-            descripcionTextField.setEnabled(false);
-            stockActualTextField.setEnabled(false);
-            stockMinimoTextField.setEnabled(false);*/
-        }
-        else
-        {
-            
         }
     }
 
@@ -310,7 +311,28 @@ public class DetalleProducto extends javax.swing.JFrame
 
     private void guardarCambiosButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_guardarCambiosButtonActionPerformed
     {//GEN-HEADEREND:event_guardarCambiosButtonActionPerformed
-        //validaciones
+        if (!ValidarData())
+        {
+            JOptionPane.showMessageDialog(this, "Error al validar data", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        producto.setData(nombreTextField.getText(), descripcionTextField.getText(), producto.getStock(), Integer.parseInt(stockMinimoTextField.getText()));
+        producto.setStock(Integer.parseInt(stockActualTextField.getText()));
+
+        try
+        {
+            db.ModificarProducto(producto);
+        } catch (SQLException ex)
+        {
+            JOptionPane.showMessageDialog(this, "SQL error", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        Volver();
+    }//GEN-LAST:event_guardarCambiosButtonActionPerformed
+
+    private boolean ValidarData()
+    {
         if (stockActualTextField.getText().equals(""))
         {
             stockActualTextField.setText("0");
@@ -328,7 +350,7 @@ public class DetalleProducto extends javax.swing.JFrame
             catch (NumberFormatException e) 
             {
                  JOptionPane.showMessageDialog(this, "Error: El numero ingresado en STOCK ACTUAL no es valido.", "Error", JOptionPane.ERROR_MESSAGE);
-                 return;
+                 return false;
             }
         }
         
@@ -350,42 +372,36 @@ public class DetalleProducto extends javax.swing.JFrame
             catch (NumberFormatException e) 
             {
                  JOptionPane.showMessageDialog(this, "Error: El numero ingresado en STOCK MINIMO no es valido.", "Error", JOptionPane.ERROR_MESSAGE);
-                 return;
+                 return false;
             }
         }
         
-        nombreTextField.setText(nombreTextField.getText().toUpperCase());
-        descripcionTextField.setText(descripcionTextField.getText().toUpperCase());
+        /*nombreTextField.setText(nombreTextField.getText().toUpperCase());
+        descripcionTextField.setText(descripcionTextField.getText().toUpperCase());*/
         
         if (nombreTextField.getText().equals(""))
         {
             JOptionPane.showMessageDialog(this, "Error: Ingrese un nombre valido para el producto.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+            return false;
         }
         else if (!nombreTextField.getText().equals(producto.getNombre()))
         {
-            Producto aux;
-            for (int i = 0; i < listaProductos.size(); i++)
+            try
             {
-                aux = listaProductos.get(i);
-                if (producto.getCod() != aux.getCod())
+                //Si al producto se le cambio el nombre, compruebo que no exista otro producto con el mismo nombre
+                if (db.productoExisteByNombre(producto.getNombre()))
                 {
-                    if (nombreTextField.getText().equals(aux.getNombre()))
-                    {
-                        JOptionPane.showMessageDialog(this, "Error: Ya existe un producto (cod: " + aux.getCod() + ") con el mismo nombre.", "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
+                    JOptionPane.showMessageDialog(this, "Error: Ya existe un producto con el mismo nombre.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return false;
                 }
+            } catch (SQLException ex)
+            {
+                return false;
             }
         }
-        
-        //System.out.println("OK");
-        producto.setData(nombreTextField.getText(), descripcionTextField.getText(), Integer.parseInt(stockMinimoTextField.getText()));
-        producto.setStock(Integer.parseInt(stockActualTextField.getText()));
-        
-        Volver();
-    }//GEN-LAST:event_guardarCambiosButtonActionPerformed
-
+        return true;
+    }
+    
     private void codigoTextFieldActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_codigoTextFieldActionPerformed
     {//GEN-HEADEREND:event_codigoTextFieldActionPerformed
         // TODO add your handling code here:
@@ -397,14 +413,14 @@ public class DetalleProducto extends javax.swing.JFrame
         int showConfirmDialog = JOptionPane.showConfirmDialog(this, "Esta seguro que desea eliminar el producto seleccionado? (esta opción no se puede deshacer)", "Eliminar", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
         if (showConfirmDialog == JOptionPane.YES_OPTION)
         {
-            for (int i = 0; i < listaProductos.size(); i++)
+            try
             {
-                Producto aux = listaProductos.get(i);
-                if (producto.getCod() == aux.getCod())
-                {
-                    listaProductos.remove(i);
-                    break;
-                }
+                db.EliminarProducto(producto.getCod());
+            } 
+            catch (SQLException ex)
+            {
+                JOptionPane.showMessageDialog(this, "SQL error", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
             Volver();
         }
@@ -432,7 +448,7 @@ public class DetalleProducto extends javax.swing.JFrame
     private void nombreTextFieldKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_nombreTextFieldKeyReleased
     {//GEN-HEADEREND:event_nombreTextFieldKeyReleased
         // TODO add your handling code here:
-        nombreTextField.setText(nombreTextField.getText().toUpperCase());
+        //nombreTextField.setText(nombreTextField.getText().toUpperCase());
         ActivarGuardarCambiosButton();
         
     }//GEN-LAST:event_nombreTextFieldKeyReleased
@@ -440,7 +456,7 @@ public class DetalleProducto extends javax.swing.JFrame
     private void descripcionTextFieldKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_descripcionTextFieldKeyReleased
     {//GEN-HEADEREND:event_descripcionTextFieldKeyReleased
         // TODO add your handling code here:
-        descripcionTextField.setText(descripcionTextField.getText().toUpperCase());
+        //descripcionTextField.setText(descripcionTextField.getText().toUpperCase());
         ActivarGuardarCambiosButton();
     }//GEN-LAST:event_descripcionTextFieldKeyReleased
 
@@ -466,57 +482,12 @@ public class DetalleProducto extends javax.swing.JFrame
     
     private void Volver()
     {
-        this.setEnabled(false);
-        this.setVisible(false);
         parent.setEnabled(true);
         parent.setFocusable(true);
         parent.setVisible(true);
+        this.dispose();
     }
     
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[])
-    {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try
-        {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
-            {
-                if ("Nimbus".equals(info.getName()))
-                {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex)
-        {
-            java.util.logging.Logger.getLogger(DetalleProducto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex)
-        {
-            java.util.logging.Logger.getLogger(DetalleProducto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex)
-        {
-            java.util.logging.Logger.getLogger(DetalleProducto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex)
-        {
-            java.util.logging.Logger.getLogger(DetalleProducto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                new DetalleProducto(null, null, null, false).setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField codigoTextField;

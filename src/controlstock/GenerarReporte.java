@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -17,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -38,16 +38,15 @@ public class GenerarReporte extends javax.swing.JFrame
     /**
      * Creates new form VerProductos
      */
-    private final JFrame parent;
-    private final List<Producto> productos; 
+    private final ControlStockMain parent;
+    private List<Producto> productos; 
     private String ultimoTextField = "";
     private boolean soloStockMin = false;
     private final JFileChooser fc;
     
-    public GenerarReporte(JFrame referenciaMain, List<Producto> prod)
+    public GenerarReporte(ControlStockMain referenciaMain)
     {
         parent = referenciaMain;
-        productos = prod;
         
         initComponents();
         setLocationRelativeTo(null);
@@ -55,21 +54,14 @@ public class GenerarReporte extends javax.swing.JFrame
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setearTabla("");
         fc = new JFileChooser();
-        
-        //En vez de poner rowsorter automatico pongo esto para que ya los ordene por nombre de un principio
-        //Con este metodo igual te deja tocar en cualquier columna y ordenarlos por valor
+
         
         TableRowSorter<TableModel> sorter = new TableRowSorter<>(table.getModel());
         table.setRowSorter(sorter);
 
         List<RowSorter.SortKey> sortKeys = new ArrayList<>(25);
         sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING));
-        //sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
         sorter.setSortKeys(sortKeys);
-        
-        
-        
-        //jTable1.setAutoCreateRowSorter(true);
         
         table.addMouseListener(new MouseAdapter() 
         {
@@ -78,9 +70,7 @@ public class GenerarReporte extends javax.swing.JFrame
                 if (e.getClickCount() == 2) 
                 {
                    JTable target = (JTable)e.getSource();
-                   //int row = target.getSelectedRow();
                     abrirDetalleProducto(target.getSelectedRow());
-                   //System.out.println(row);
                 }
             }
         });
@@ -111,12 +101,21 @@ public class GenerarReporte extends javax.swing.JFrame
         
         this.setFocusable(false);
         this.setEnabled(false);
-        new DetalleProducto(this, aux, productos, false).setVisible(true);
+        new DetalleProducto(this, aux, false, null).setVisible(true);
     }
     
     private void setearTabla(String indiceBusqueda)
     {
         table.removeAll();
+        
+        try
+        {
+            productos = parent.getDB().getMultipleByNombre(indiceBusqueda);
+        } catch (SQLException ex)
+        {
+            JOptionPane.showMessageDialog(this, "Internal SQL error", "Error", JOptionPane.ERROR_MESSAGE);
+            Volver();
+        }
 
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         while (model.getRowCount() != 0)
@@ -477,14 +476,10 @@ public class GenerarReporte extends javax.swing.JFrame
     private void buscarTextFieldKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_buscarTextFieldKeyReleased
     {//GEN-HEADEREND:event_buscarTextFieldKeyReleased
         // TODO add your handling code here:
-        /*if (buscarTextField.getText().equals(ultimoTextField))
-        {
-            return;
-        }*/
+
         buscarTextField.setText(buscarTextField.getText().toUpperCase());
         ultimoTextField = buscarTextField.getText();
         setearTabla(ultimoTextField);
-        //System.out.println("cambiooo");
     }//GEN-LAST:event_buscarTextFieldKeyReleased
 
     private void generarReporteButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_generarReporteButtonActionPerformed
@@ -534,17 +529,12 @@ public class GenerarReporte extends javax.swing.JFrame
         }
         
         //aca ya procese los filtros de productos, la lista a exportar esta en la variable prodReporte
-        //ENTONCES ACA VER EL FORMATO Y LAS COLUMNAS
-        //....
+
         
         String timeLog = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Calendar.getInstance().getTime());
         fc.setSelectedFile(new File(""));
                 
-        /*if (formatoPdfRadioButton.isSelected()) //PDF-----------------------------
-        {
-            
-        }
-        else */if (formatoTxtRadioButton.isSelected()) //TXT-------------------------
+        if (formatoTxtRadioButton.isSelected()) //TXT-------------------------
         {
             BufferedWriter writer = null;
             try 
@@ -636,7 +626,6 @@ public class GenerarReporte extends javax.swing.JFrame
             {
                 try 
                 {
-                    // Close the writer regardless of what happens...
                     writer.close();
                 } 
                 catch (Exception e) 
@@ -756,7 +745,6 @@ public class GenerarReporte extends javax.swing.JFrame
             {
                 try 
                 {
-                    // Close the writer regardless of what happens...
                     writer.close();
                 } 
                 catch (Exception e) 
@@ -776,21 +764,7 @@ public class GenerarReporte extends javax.swing.JFrame
     {
         return String.format("%1$" + n + "s", s);  
     }
-    
-    /*private List<Producto> ordenarListProductos(List<Producto> p)
-    {
-        boolean cambios = false;
-        while (!cambios)
-        {
-            cambios = false;
-            
-            for (int i = 0; i < p.size(); i++)
-            {
-                String aaa = new String();
-                aaa.com
-            }
-        }
-    }*/
+
     
     
     private void productosTodosRadioButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_productosTodosRadioButtonActionPerformed
@@ -830,52 +804,6 @@ public class GenerarReporte extends javax.swing.JFrame
         parent.setEnabled(true);
         parent.setFocusable(true);
         parent.setVisible(true);
-    }
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[])
-    {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try
-        {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
-            {
-                if ("Nimbus".equals(info.getName()))
-                {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex)
-        {
-            java.util.logging.Logger.getLogger(GenerarReporte.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex)
-        {
-            java.util.logging.Logger.getLogger(GenerarReporte.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex)
-        {
-            java.util.logging.Logger.getLogger(GenerarReporte.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex)
-        {
-            java.util.logging.Logger.getLogger(GenerarReporte.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                new GenerarReporte(null, null).setVisible(true);
-            }
-        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

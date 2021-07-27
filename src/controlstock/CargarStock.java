@@ -5,6 +5,7 @@
  */
 package controlstock;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
@@ -26,7 +27,7 @@ public class CargarStock extends javax.swing.JFrame
      * Creates new form CargarProductos
      */
     private final ControlStockMain parent;
-    private final List<Producto> productos; 
+    private List<Producto> productos; 
     private String ultimoTextField = "";
     private boolean soloStockMin = false;
     private boolean necesitaActualizacion = false; //esto lo uso para cuando se cierra alguna ventana hija
@@ -35,16 +36,24 @@ public class CargarStock extends javax.swing.JFrame
     private final List<Integer> valor_row;
     
     
-    public CargarStock(ControlStockMain referenciaMain, List<Producto> prod)
+    public CargarStock(ControlStockMain referenciaMain)
     {
         parent = referenciaMain;
-        productos = prod;
         
         initComponents();
         setLocationRelativeTo(null);
         
         valor_carga = new ArrayList<>();
         valor_row = new ArrayList<>();
+        
+        try
+        {
+            productos = parent.getDB().getMultipleByNombre("");
+        } catch (SQLException ex)
+        {
+            JOptionPane.showMessageDialog(this, "Internal SQL error", "Error", JOptionPane.ERROR_MESSAGE);
+            Volver(false);
+        }
         
         for (int i = 0; i < productos.size(); i++)
         {
@@ -122,6 +131,15 @@ public class CargarStock extends javax.swing.JFrame
     {
         table.removeAll();
 
+        try
+        {
+            productos = parent.getDB().getMultipleByNombre(indiceBusqueda);
+        } catch (SQLException ex)
+        {
+            JOptionPane.showMessageDialog(this, "Internal SQL error", "Error", JOptionPane.ERROR_MESSAGE);
+            Volver(false);
+        }
+        
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         while (model.getRowCount() != 0)
         {
@@ -165,6 +183,7 @@ public class CargarStock extends javax.swing.JFrame
         stockMinimoCheckBox = new javax.swing.JCheckBox();
         guardarCambiosButton = new javax.swing.JButton();
         ayudaButton = new javax.swing.JButton();
+        filtrarButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Carga De Stock");
@@ -242,12 +261,12 @@ public class CargarStock extends javax.swing.JFrame
 
         buscarTextField.addInputMethodListener(new java.awt.event.InputMethodListener()
         {
+            public void caretPositionChanged(java.awt.event.InputMethodEvent evt)
+            {
+            }
             public void inputMethodTextChanged(java.awt.event.InputMethodEvent evt)
             {
                 buscarTextFieldInputMethodTextChanged(evt);
-            }
-            public void caretPositionChanged(java.awt.event.InputMethodEvent evt)
-            {
             }
         });
         buscarTextField.addKeyListener(new java.awt.event.KeyAdapter()
@@ -292,6 +311,16 @@ public class CargarStock extends javax.swing.JFrame
             }
         });
 
+        filtrarButton.setText("FIltrar");
+        filtrarButton.setName(""); // NOI18N
+        filtrarButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                filtrarButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -306,8 +335,10 @@ public class CargarStock extends javax.swing.JFrame
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 59, Short.MAX_VALUE)
+                        .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(filtrarButton)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 118, Short.MAX_VALUE)
                 .addComponent(ayudaButton)
                 .addGap(59, 59, 59)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -323,7 +354,8 @@ public class CargarStock extends javax.swing.JFrame
                         .addGap(16, 16, 16)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1))
+                            .addComponent(jLabel1)
+                            .addComponent(filtrarButton))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(stockMinimoCheckBox)
                         .addGap(2, 2, 2))
@@ -372,9 +404,9 @@ public class CargarStock extends javax.swing.JFrame
         {
             return;
         }*/
-        buscarTextField.setText(buscarTextField.getText().toUpperCase());
+        //buscarTextField.setText(buscarTextField.getText().toUpperCase());
         ultimoTextField = buscarTextField.getText();
-        setearTabla(ultimoTextField);
+        //setearTabla(ultimoTextField);
         //System.out.println("cambiooo");
     }//GEN-LAST:event_buscarTextFieldKeyReleased
 
@@ -450,6 +482,14 @@ public class CargarStock extends javax.swing.JFrame
             }
         }
         
+        try
+        {
+            parent.getDB().ModificarStock(productos);
+        } 
+        catch (SQLException ex)
+        {
+            JOptionPane.showMessageDialog(this, "SQL ERROR", "Error", JOptionPane.ERROR_MESSAGE);
+        }
         setearTablaLimpia(ultimoTextField);
         JOptionPane.showMessageDialog(this, "Se actualizó el stock con exito.", "Correcto", JOptionPane.INFORMATION_MESSAGE);
         //Volver(false);        
@@ -460,6 +500,13 @@ public class CargarStock extends javax.swing.JFrame
         // TODO add your handling code here:
         JOptionPane.showMessageDialog(this, "<html><body><div align='center'>Para cada producto que deseé cambiar el stock,<br>utilice el campo bajo la columna CARGA para<br>indicar la cantidad que se agrega<br>o se quita al stock.<br>Para quitar stock de un producto utilice<br>valores negativos (si se intenta<br>restar una cantidad mayor a la existente<br>el programa lanzará un error).</div></body></html>", "Ayuda", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_ayudaButtonActionPerformed
+
+    private void filtrarButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_filtrarButtonActionPerformed
+    {//GEN-HEADEREND:event_filtrarButtonActionPerformed
+        // TODO add your handling code here:
+        setearTabla(ultimoTextField);
+        
+    }//GEN-LAST:event_filtrarButtonActionPerformed
 
     
     private boolean HuboCambios()
@@ -490,58 +537,13 @@ public class CargarStock extends javax.swing.JFrame
         parent.setEnabled(true);
         parent.setFocusable(true);
         parent.setVisible(true);
-        parent.GuardarBaseDeDatos();
-    }
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[])
-    {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try
-        {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
-            {
-                if ("Nimbus".equals(info.getName()))
-                {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex)
-        {
-            java.util.logging.Logger.getLogger(CargarStock.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex)
-        {
-            java.util.logging.Logger.getLogger(CargarStock.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex)
-        {
-            java.util.logging.Logger.getLogger(CargarStock.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex)
-        {
-            java.util.logging.Logger.getLogger(CargarStock.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                new CargarStock(null, null).setVisible(true);
-            }
-        });
+        //parent.GuardarBaseDeDatos();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ayudaButton;
     private javax.swing.JTextField buscarTextField;
+    private javax.swing.JButton filtrarButton;
     private javax.swing.JButton guardarCambiosButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;

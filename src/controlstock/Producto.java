@@ -27,10 +27,9 @@ public class Producto
     
     public Producto()
     {
-        cod = ControlStockMain.SIGUIENTE_CODIGO;
-        ControlStockMain.SIGUIENTE_CODIGO++;
         valorStockMin = 0;
         stock = 0;
+        cod = 0;
     }
     
     public Producto(int codigo)
@@ -40,10 +39,11 @@ public class Producto
         stock = 0;
     }
     
-    public void setData(String nombre, String descripcion, int valorStockMin)
+    public void setData(String nombre, String descripcion, int valorStock, int valorStockMin)
     {
         setNombre(nombre);
         setDescripcion(descripcion);
+        setStock(valorStock);
         setValorStockMin(valorStockMin);
     }
     

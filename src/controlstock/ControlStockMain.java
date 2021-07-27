@@ -5,26 +5,8 @@
  */
 package controlstock;
 
-import java.awt.Desktop;
-import java.awt.Font;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 
 /**
  *
@@ -33,317 +15,32 @@ import javax.swing.event.HyperlinkListener;
 public final class ControlStockMain extends javax.swing.JFrame
 {
     public static int SIGUIENTE_CODIGO = 1;
-    
-    private static final String NOMBRE_DB = "db.DB";
-    //private static final String NOMBRE_BACKUP_DEFAULT = ".BackupStock00";
-    private static final int HASH_BACKUP = 915487632;   
-    private static final String TUTORIAL_LINK_YT = "https://youtu.be/23kUevvWyTw";
-    
+    private static final String BD_NAME = "stock-control-db.db";
     private final JFileChooser fc;
-    //HASH_BACKUP - cuando se guarda un backup, 
-    //esto se guarda al principio de todo, 
-    //y se usa al cargar un backup para comprobar que el archivo 
-    //seleccionado sea realmente un backup de este programa
+    private final Database db;
     
     /**
      * Creates new form ControlStock
      */
     
-    private List<Producto> productos;
+    
 
     public ControlStockMain()
     {
         initComponents();
         setLocationRelativeTo(null);
         
-        productos = new ArrayList<>();
+        
         fc = new JFileChooser();
-        //prueba
-        /*Producto aux = new Producto();
-        for (int i = 0; i < 20; i++)
+        
+        db = new Database();
+        if (!db.init(BD_NAME))
         {
-            aux = new Producto();
-            aux.setData("PRODUCTO " + i, "DESCRIPCION " + i , 5);
-            aux.setStock(i);
-            productos.add(aux);
+            JOptionPane.showMessageDialog(this, "No se encuentra la base de datos", "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
         }
         
-        for (int i = 0; i < 20; i++)
-        {
-            aux = new Producto();
-            aux.setData("CAJA " + i, "DESCRIPCION CAJA " + i , 5);
-            aux.setStock(i);
-            productos.add(aux);
-        }
-        
-        for (int i = 0; i < 12; i++)
-        {
-            aux = new Producto();
-            aux.setData("CAJON " + i, "DESCRIPCION CAJON " + i , 5);
-            aux.setStock(i);
-            productos.add(aux);
-        }
-        
-        for (int i = 0; i < 15; i++)
-        {
-            aux = new Producto();
-            aux.setData("MADERA " + i, "DESCRIPCION MADERA " + i , 5);
-            aux.setStock(i);
-            productos.add(aux);
-        }*/
-        
-        CargarBaseDeDatos();
-    }
-    
-    /*
-    ESTRUCTURA BASE DE DATOS:
-    
-    siguiente_codigo INT
-    cantidad_productos INT
-    
-    *********para cada producto***********
-    codigo INT
-    nombre_size INT
-    nombre CHAR[]
-    descripcion_size INT
-    descripcion CHAR[]
-    stock INT
-    stock_minimo INT
-    **************************************
-    
-    CADA VEZ QUE SE GUARDA SE REEMPLAZA EL ARCHIVO COMPLETAMENTE
-    */
-    
-    //se llama desde CargarBaseDeDatos() si el archivo no existe
-    protected void CrearBaseDeDatosDefault()
-    {
-        try 
-        (
-                ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(NOMBRE_DB))) {
- 
-            outputStream.writeInt(1);
-            outputStream.writeInt(0);
-        } 
-        catch (IOException ex) 
-        {
-            JOptionPane.showMessageDialog(this, "ERROR AL GUARDAR BASE DE DATOS.", "Error", JOptionPane.ERROR_MESSAGE);
-            //return;
-        }
-    }
-    
-    protected void GuardarBaseDeDatos()
-    {
-        try 
-        (
-                ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(NOMBRE_DB))) {
- 
-            outputStream.writeInt(SIGUIENTE_CODIGO);
-            outputStream.writeInt(productos.size());
-            Producto aux;
-            for (int i = 0; i < productos.size(); i++)
-            {
-                aux = productos.get(i);
-                outputStream.writeInt(aux.getCod());
-                outputStream.writeInt(aux.getNombre().length());
-                outputStream.writeChars(aux.getNombre());
-                outputStream.writeInt(aux.getDescripcion().length());
-                outputStream.writeChars(aux.getDescripcion());
-                outputStream.writeInt(aux.getStock());
-                outputStream.writeInt(aux.getValorStockMin());
-            }
-        } 
-        catch (IOException ex) 
-        {
-            JOptionPane.showMessageDialog(this, "ERROR AL GUARDAR BASE DE DATOS.", "Error", JOptionPane.ERROR_MESSAGE);
-            //return;
-        }
-    }
-    
-    protected void CargarBaseDeDatos()
-    {
-        if (Files.notExists(Paths.get(NOMBRE_DB)))
-        {
-            JOptionPane.showMessageDialog(this, "No se encontró una base de datos, se generó una nueva.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            CrearBaseDeDatosDefault();
-            return;
-        }
-        
-        try 
-            (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(NOMBRE_DB)))
-        {
-            Producto aux;
-            productos = new ArrayList<>();
-
-            
-
-            SIGUIENTE_CODIGO = inputStream.readInt(); //siguiente codigo
-            int cantidad = inputStream.readInt(); //cantidad de productos a cargar
-            int cant_aux;
-            char[] char_arr;
-            for (int i = 0; i < cantidad; i++)
-            {
-                //CODIGO
-                aux = new Producto(inputStream.readInt()); 
-                
-                //NOMBRE SIZE
-                cant_aux = inputStream.readInt();
-                //NOMBRE
-                char_arr = new char[cant_aux];
-                for (int ii = 0; ii < cant_aux; ii++)
-                {
-                    char_arr[ii] = inputStream.readChar();
-                }
-                aux.setNombre(String.valueOf(char_arr));
-                
-                //DESC SIZE
-                cant_aux = inputStream.readInt();
-                //DESC
-                char_arr = new char[cant_aux];
-                for (int ii = 0; ii < cant_aux; ii++)
-                {
-                    char_arr[ii] = inputStream.readChar();
-                }
-                aux.setDescripcion(String.valueOf(char_arr));
-                
-                //STOCK
-                aux.setStock(inputStream.readInt());
-                //STOCK MIN
-                aux.setValorStockMin(inputStream.readInt());
-                productos.add(aux);
-            }
- 
-        } 
-        catch (IOException ex) 
-        {
-            JOptionPane.showMessageDialog(this, "ERROR AL GUARDAR BASE DE DATOS.", "Error", JOptionPane.ERROR_MESSAGE);
-            //return;
-        }
-    }
-    
-    protected void GuardarBackup()
-    {
-        int res = fc.showSaveDialog(this);
-        if (res != JFileChooser.APPROVE_OPTION)
-        {
-            return;
-        }
-        
-        File f = fc.getSelectedFile();
-        
-        if (f.exists())
-        {
-            int showConfirmDialog = JOptionPane.showConfirmDialog(this, "El archivo ya existe, está seguro que desea reemplazarlo?", "Reemplazar", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-            if (showConfirmDialog != JOptionPane.YES_OPTION)
-            {
-                return;
-            }
-        }
-        
-        try 
-        (
-                ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(f))) {
- 
-            outputStream.writeInt(HASH_BACKUP);
-            outputStream.writeInt(SIGUIENTE_CODIGO);
-            outputStream.writeInt(productos.size());
-            Producto aux;
-            for (int i = 0; i < productos.size(); i++)
-            {
-                aux = productos.get(i);
-                outputStream.writeInt(aux.getCod());
-                outputStream.writeInt(aux.getNombre().length());
-                outputStream.writeChars(aux.getNombre());
-                outputStream.writeInt(aux.getDescripcion().length());
-                outputStream.writeChars(aux.getDescripcion());
-                outputStream.writeInt(aux.getStock());
-                outputStream.writeInt(aux.getValorStockMin());
-            }
-        } 
-        catch (IOException ex) 
-        {
-            JOptionPane.showMessageDialog(this, "ERROR AL GUARDAR BACKUP.", "Error", JOptionPane.ERROR_MESSAGE);
-            //return;
-        }
-    }
-    
-    protected void CargarBackup()
-    {
-        int showConfirmDialog = JOptionPane.showConfirmDialog(this, "Está seguro que desea cargar un backup?\nLos datos actuales de la base de datos se reemplazaran por los del backup elegido.", "Cargar backup", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-        if (showConfirmDialog != JOptionPane.YES_OPTION)
-        {
-            return;
-        }
-        
-        int res = fc.showOpenDialog(this);
-        if (res != JFileChooser.APPROVE_OPTION)
-        {
-            return;
-        }
-        
-        File f = fc.getSelectedFile();
-        
-        
-        
-        try 
-            (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(f)))
-        {
-            Producto aux;
-            productos = new ArrayList<>();
-
-            int hash = inputStream.readInt();
-            if (hash != HASH_BACKUP)
-            {
-                throw new EOFException();
-            }
-            
-            SIGUIENTE_CODIGO = inputStream.readInt(); //siguiente codigo
-            int cantidad = inputStream.readInt(); //cantidad de productos a cargar
-            int cant_aux;
-            char[] char_arr;
-            for (int i = 0; i < cantidad; i++)
-            {
-                //CODIGO
-                aux = new Producto(inputStream.readInt()); 
-                
-                //NOMBRE SIZE
-                cant_aux = inputStream.readInt();
-                //NOMBRE
-                char_arr = new char[cant_aux];
-                for (int ii = 0; ii < cant_aux; ii++)
-                {
-                    char_arr[ii] = inputStream.readChar();
-                }
-                aux.setNombre(String.valueOf(char_arr));
-                
-                //DESC SIZE
-                cant_aux = inputStream.readInt();
-                //DESC
-                char_arr = new char[cant_aux];
-                for (int ii = 0; ii < cant_aux; ii++)
-                {
-                    char_arr[ii] = inputStream.readChar();
-                }
-                aux.setDescripcion(String.valueOf(char_arr));
-                
-                //STOCK
-                aux.setStock(inputStream.readInt());
-                //STOCK MIN
-                aux.setValorStockMin(inputStream.readInt());
-                productos.add(aux);
-            }
-            
-            JOptionPane.showMessageDialog(this, "Backup cargado con exito!", "Exito", JOptionPane.INFORMATION_MESSAGE);
- 
-        } 
-        catch (EOFException e)
-        {
-            JOptionPane.showMessageDialog(this, "Error: el backup elegido no es valido.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        catch (IOException ex) 
-        {
-            JOptionPane.showMessageDialog(this, "ERROR AL CARGAR BACKUP.", "Error", JOptionPane.ERROR_MESSAGE);
-            //return;
-        }
+        //CargarTestData();
     }
 
     /**
@@ -369,11 +66,7 @@ public final class ControlStockMain extends javax.swing.JFrame
         jMenuBar1 = new javax.swing.JMenuBar();
         archivoMenu = new javax.swing.JMenu();
         salirMenuItem = new javax.swing.JMenuItem();
-        backupMenu = new javax.swing.JMenu();
-        crearBackupMenuItem = new javax.swing.JMenuItem();
-        restaurarBackupMenuItem = new javax.swing.JMenuItem();
         ayudaMenu = new javax.swing.JMenu();
-        verAyudaMenuItem = new javax.swing.JMenuItem();
         acercaDeMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -502,41 +195,7 @@ public final class ControlStockMain extends javax.swing.JFrame
 
         jMenuBar1.add(archivoMenu);
 
-        backupMenu.setText("Backup");
-
-        crearBackupMenuItem.setText("Crear backup");
-        crearBackupMenuItem.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                crearBackupMenuItemActionPerformed(evt);
-            }
-        });
-        backupMenu.add(crearBackupMenuItem);
-
-        restaurarBackupMenuItem.setText("Restaurar backup");
-        restaurarBackupMenuItem.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                restaurarBackupMenuItemActionPerformed(evt);
-            }
-        });
-        backupMenu.add(restaurarBackupMenuItem);
-
-        jMenuBar1.add(backupMenu);
-
         ayudaMenu.setText("Ayuda");
-
-        verAyudaMenuItem.setText("Ver ayuda");
-        verAyudaMenuItem.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                verAyudaMenuItemActionPerformed(evt);
-            }
-        });
-        ayudaMenu.add(verAyudaMenuItem);
 
         acercaDeMenuItem.setText("Acerca de");
         acercaDeMenuItem.addActionListener(new java.awt.event.ActionListener()
@@ -598,7 +257,7 @@ public final class ControlStockMain extends javax.swing.JFrame
         // TODO add your handling code here:
         this.setFocusable(false);
         this.setEnabled(false);
-        new GenerarReporte(this, productos).setVisible(true);
+        new GenerarReporte(this).setVisible(true);
     }//GEN-LAST:event_generarReporteButtonActionPerformed
 
     private void salirButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_salirButtonActionPerformed
@@ -612,7 +271,7 @@ public final class ControlStockMain extends javax.swing.JFrame
         // TODO add your handling code here:
         this.setFocusable(false);
         this.setEnabled(false);
-        new VerProductos(this, productos).setVisible(true);
+        new VerProductos(this).setVisible(true);
     }//GEN-LAST:event_verProductosButtonActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
@@ -632,7 +291,7 @@ public final class ControlStockMain extends javax.swing.JFrame
         // TODO add your handling code here:
         this.setFocusable(false);
         this.setEnabled(false);
-        new CargarStock(this, productos).setVisible(true);
+        new CargarStock(this).setVisible(true);
     }//GEN-LAST:event_modificarStockButtonActionPerformed
 
     private void modificarProductosButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_modificarProductosButtonActionPerformed
@@ -640,72 +299,14 @@ public final class ControlStockMain extends javax.swing.JFrame
         // TODO add your handling code here:
         this.setFocusable(false);
         this.setEnabled(false);
-        new CargarProductos(this, productos).setVisible(true);
+        new CargarProductos(this).setVisible(true);
     }//GEN-LAST:event_modificarProductosButtonActionPerformed
-
-    private void crearBackupMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_crearBackupMenuItemActionPerformed
-    {//GEN-HEADEREND:event_crearBackupMenuItemActionPerformed
-        // TODO add your handling code here:
-        GuardarBackup();
-    }//GEN-LAST:event_crearBackupMenuItemActionPerformed
-
-    private void restaurarBackupMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_restaurarBackupMenuItemActionPerformed
-    {//GEN-HEADEREND:event_restaurarBackupMenuItemActionPerformed
-        // TODO add your handling code here:
-        CargarBackup();
-    }//GEN-LAST:event_restaurarBackupMenuItemActionPerformed
 
     private void acercaDeMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_acercaDeMenuItemActionPerformed
     {//GEN-HEADEREND:event_acercaDeMenuItemActionPerformed
         // TODO add your handling code here:
-        JOptionPane.showMessageDialog(this, "<html><body><div align='center'>Por Hernán Alberto Pérez (2017)<br><br>hernanperez1993@gmail.com<br>hernanperez.dev@gmail.com<br><br>v1.1</div></body></html>", "Acerca de", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "<html><body><div align='center'>Por Hernán Alberto Pérez <br><br>hernanperez.dev@gmail.com</html>", "Acerca de", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_acercaDeMenuItemActionPerformed
-
-    private void verAyudaMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_verAyudaMenuItemActionPerformed
-    {//GEN-HEADEREND:event_verAyudaMenuItemActionPerformed
-        // TODO add your handling code here:
-       // for copying style
-        JLabel label = new JLabel();
-        Font font = label.getFont();
-
-        // create some css from the label's font
-        StringBuffer style = new StringBuffer("font-family:" + font.getFamily() + ";");
-        style.append("font-weight:" + (font.isBold() ? "bold" : "normal") + ";");
-        style.append("font-size:" + font.getSize() + "pt;");
-
-        // html content
-        JEditorPane ep = new JEditorPane("text/html", "<html><body style=\"" + style + "\">" //
-                + "Video tutorial:<br><a href=\"" + TUTORIAL_LINK_YT + "\">" + TUTORIAL_LINK_YT + "</a>" //
-                + "</body></html>");
-
-        // handle link events
-        ep.addHyperlinkListener(new HyperlinkListener()
-        {
-            @Override
-            public void hyperlinkUpdate(HyperlinkEvent e)
-            {
-                if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED))
-                {
-                    //ProcessHandler.launchUrl(e.getURL().toString()); // roll your own link launcher or use Desktop if J6+
-                    //System.out.println("okkkkkkk");
-                    try 
-                    {
-                        Desktop.getDesktop().browse(new URL(TUTORIAL_LINK_YT).toURI());
-                    } 
-                    catch (Exception ee) 
-                    {
-                    ee.printStackTrace();
-                    }
-                }
-                    
-            }
-        });
-        ep.setEditable(false);
-        ep.setBackground(label.getBackground());
-
-        // show
-        JOptionPane.showMessageDialog(this, ep, "Ayuda", JOptionPane.INFORMATION_MESSAGE);
-    }//GEN-LAST:event_verAyudaMenuItemActionPerformed
    
     
     /**
@@ -762,26 +363,78 @@ public final class ControlStockMain extends javax.swing.JFrame
             System.exit(0);
         }
     }
+    
+    public Database getDB()
+    {
+        return db;
+    }
+    
+    /*
+    private void CargarTestData()
+    {
+        
+        Producto aux;
+        List<Producto> productos = new ArrayList<Producto>();
+        
+        for (int i = 0; i < 20; i++)
+        {
+            aux = new Producto();
+            aux.setData("PRODUCTO " + i, "DESCRIPCION " + i , 0, 5);
+            aux.setStock(i);
+            productos.add(aux);
+        }
+        
+        for (int i = 0; i < 20; i++)
+        {
+            aux = new Producto();
+            aux.setData("CAJA " + i, "DESCRIPCION CAJA " + i , 0, 5);
+            aux.setStock(i);
+            productos.add(aux);
+        }
+        
+        for (int i = 0; i < 12; i++)
+        {
+            aux = new Producto();
+            aux.setData("CAJON " + i, "DESCRIPCION CAJON " + i , 0, 5);
+            aux.setStock(i);
+            productos.add(aux);
+        }
+        
+        for (int i = 0; i < 15; i++)
+        {
+            aux = new Producto();
+            aux.setData("MADERA " + i, "DESCRIPCION MADERA " + i , 0, 5);
+            aux.setStock(i);
+            productos.add(aux);
+        }
+        
+        for (int i = 0; i < productos.size(); i++)
+        {
+            try
+            {
+                db.AgregarProducto(productos.get(i));
+            } catch (SQLException ex)
+            {
+                Logger.getLogger(ControlStockMain.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }*/
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem acercaDeMenuItem;
     private javax.swing.JMenu archivoMenu;
     private javax.swing.JMenu ayudaMenu;
-    private javax.swing.JMenu backupMenu;
     private javax.swing.JLabel cargaLabel;
     private javax.swing.JLabel controlLabel;
-    private javax.swing.JMenuItem crearBackupMenuItem;
     private javax.swing.JButton generarReporteButton;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JButton modificarProductosButton;
     private javax.swing.JButton modificarStockButton;
-    private javax.swing.JMenuItem restaurarBackupMenuItem;
     private javax.swing.JButton salirButton;
     private javax.swing.JMenuItem salirMenuItem;
     private javax.swing.JLabel tituloLabel;
-    private javax.swing.JMenuItem verAyudaMenuItem;
     private javax.swing.JButton verProductosButton;
     // End of variables declaration//GEN-END:variables
 }

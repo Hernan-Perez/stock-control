@@ -7,8 +7,10 @@ package controlstock;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
@@ -28,38 +30,28 @@ public class CargarProductos extends javax.swing.JFrame
      * Creates new form CargarProductos
      */
     private final ControlStockMain parent;
-    private final List<Producto> productos; 
+    private List<Producto> productos; 
     private String ultimoTextField = "";
     private boolean soloStockMin = false;
     private boolean necesitaActualizacion = false; //esto lo uso para cuando se cierra alguna ventana hija
     
     
-    public CargarProductos(ControlStockMain referenciaMain, List<Producto> prod)
+    public CargarProductos(ControlStockMain referenciaMain)
     {
         parent = referenciaMain;
-        productos = prod;
         
         initComponents();
         setLocationRelativeTo(null);
         
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        setearTabla("");
-        
-        //En vez de poner rowsorter automatico pongo esto para que ya los ordene por nombre de un principio
-        //Con este metodo igual te deja tocar en cualquier columna y ordenarlos por valor
         
         TableRowSorter<TableModel> sorter = new TableRowSorter<>(table.getModel());
         table.setRowSorter(sorter);
 
         List<RowSorter.SortKey> sortKeys = new ArrayList<>(25);
         sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING));
-        //sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
         sorter.setSortKeys(sortKeys);
-        
-        
-        
-        //jTable1.setAutoCreateRowSorter(true);
-        
+
         table.addMouseListener(new MouseAdapter() 
         {
             public void mouseClicked(MouseEvent e) 
@@ -67,12 +59,12 @@ public class CargarProductos extends javax.swing.JFrame
                 if (e.getClickCount() == 2) 
                 {
                    JTable target = (JTable)e.getSource();
-                   //int row = target.getSelectedRow();
                     abrirDetalleProducto(target.getSelectedRow());
-                   //System.out.println(row);
                 }
             }
         });
+        
+        setearTabla(ultimoTextField);
     }
     
     private void abrirDetalleProducto(int row)
@@ -101,13 +93,22 @@ public class CargarProductos extends javax.swing.JFrame
         this.setFocusable(false);
         this.setEnabled(false);
         necesitaActualizacion = true;
-        new DetalleProducto(this, aux, productos, true).setVisible(true);
+        new DetalleProducto(this, aux, true, parent.getDB()).setVisible(true);
     }
     
     private void setearTabla(String indiceBusqueda)
     {
         table.removeAll();
 
+        try
+        {
+            productos = parent.getDB().getMultipleByNombre(indiceBusqueda);
+        } catch (SQLException ex)
+        {
+            JOptionPane.showMessageDialog(this, "Internal SQL error", "Error", JOptionPane.ERROR_MESSAGE);
+            Volver();
+        }
+        
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         while (model.getRowCount() != 0)
         {
@@ -145,6 +146,7 @@ public class CargarProductos extends javax.swing.JFrame
         jLabel1 = new javax.swing.JLabel();
         stockMinimoCheckBox = new javax.swing.JCheckBox();
         agregarProductoButton = new javax.swing.JButton();
+        filtrarButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Modificar Productos");
@@ -230,6 +232,13 @@ public class CargarProductos extends javax.swing.JFrame
                 buscarTextFieldInputMethodTextChanged(evt);
             }
         });
+        buscarTextField.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                buscarTextFieldActionPerformed(evt);
+            }
+        });
         buscarTextField.addKeyListener(new java.awt.event.KeyAdapter()
         {
             public void keyPressed(java.awt.event.KeyEvent evt)
@@ -263,11 +272,21 @@ public class CargarProductos extends javax.swing.JFrame
             }
         });
 
+        filtrarButton.setText("FIltrar");
+        filtrarButton.setName(""); // NOI18N
+        filtrarButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                filtrarButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 565, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -277,8 +296,10 @@ public class CargarProductos extends javax.swing.JFrame
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(filtrarButton)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 68, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(agregarProductoButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(volverButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -292,7 +313,8 @@ public class CargarProductos extends javax.swing.JFrame
                         .addGap(16, 16, 16)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1))
+                            .addComponent(jLabel1)
+                            .addComponent(filtrarButton))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(stockMinimoCheckBox)
                         .addGap(2, 2, 2))
@@ -339,9 +361,9 @@ public class CargarProductos extends javax.swing.JFrame
         {
             return;
         }*/
-        buscarTextField.setText(buscarTextField.getText().toUpperCase());
+        //buscarTextField.setText(buscarTextField.getText().toUpperCase());
         ultimoTextField = buscarTextField.getText();
-        setearTabla(ultimoTextField);
+        //setearTabla(ultimoTextField);
         //System.out.println("cambiooo");
     }//GEN-LAST:event_buscarTextFieldKeyReleased
 
@@ -380,8 +402,20 @@ public class CargarProductos extends javax.swing.JFrame
         this.setFocusable(false);
         this.setEnabled(false);
         necesitaActualizacion = true;
-        new NuevoProducto(this, productos).setVisible(true);
+        new NuevoProducto(this, parent.getDB()).setVisible(true);
     }//GEN-LAST:event_agregarProductoButtonActionPerformed
+
+    private void buscarTextFieldActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buscarTextFieldActionPerformed
+    {//GEN-HEADEREND:event_buscarTextFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_buscarTextFieldActionPerformed
+
+    private void filtrarButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_filtrarButtonActionPerformed
+    {//GEN-HEADEREND:event_filtrarButtonActionPerformed
+        // TODO add your handling code here:
+        setearTabla(ultimoTextField);
+
+    }//GEN-LAST:event_filtrarButtonActionPerformed
 
     private void Volver()
     {
@@ -390,57 +424,13 @@ public class CargarProductos extends javax.swing.JFrame
         parent.setEnabled(true);
         parent.setFocusable(true);
         parent.setVisible(true);
-        parent.GuardarBaseDeDatos();
     }
     
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[])
-    {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try
-        {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
-            {
-                if ("Nimbus".equals(info.getName()))
-                {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex)
-        {
-            java.util.logging.Logger.getLogger(CargarProductos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex)
-        {
-            java.util.logging.Logger.getLogger(CargarProductos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex)
-        {
-            java.util.logging.Logger.getLogger(CargarProductos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex)
-        {
-            java.util.logging.Logger.getLogger(CargarProductos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                new CargarProductos(null, null).setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton agregarProductoButton;
     private javax.swing.JTextField buscarTextField;
+    private javax.swing.JButton filtrarButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JCheckBox stockMinimoCheckBox;

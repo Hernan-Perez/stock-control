@@ -3,9 +3,13 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/hernan/Google%20Drive/Google%20Drive/Programacion/Control%20De%20Stock/ControlStock_codigo_fuente/ControlStock/src/controlstock/ControlStockMain.java</file>
-            <file>file:/C:/Users/hernan/Google%20Drive/Google%20Drive/Programacion/Control%20De%20Stock/ControlStock_codigo_fuente/ControlStock/src/controlstock/CargarStock.java</file>
-            <file>file:/C:/Users/hernan/Google%20Drive/Google%20Drive/Programacion/Control%20De%20Stock/ControlStock_codigo_fuente/ControlStock/src/controlstock/Producto.java</file>
+            <file>file:/C:/Users/hernan/Documents/GitHub/stock-control/src/controlstock/ControlStockMain.java</file>
+            <file>file:/C:/Users/hernan/Documents/GitHub/stock-control/src/controlstock/CargarStock.java</file>
+            <file>file:/C:/Users/hernan/Documents/GitHub/stock-control/src/controlstock/CargarProductos.java</file>
+            <file>file:/C:/Users/hernan/Documents/GitHub/stock-control/src/controlstock/Producto.java</file>
+            <file>file:/C:/Users/hernan/Documents/GitHub/stock-control/src/controlstock/NuevoProducto.java</file>
+            <file>file:/C:/Users/hernan/Documents/GitHub/stock-control/src/controlstock/Database.java</file>
+            <file>file:/C:/Users/hernan/Documents/GitHub/stock-control/src/controlstock/DetalleProducto.java</file>
         </group>
     </open-files>
 </project-private>
