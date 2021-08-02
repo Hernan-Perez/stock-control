@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.ResourceBundle;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -35,14 +36,12 @@ import javax.swing.table.TableRowSorter;
 public class GenerarReporte extends javax.swing.JFrame
 {
 
-    /**
-     * Creates new form VerProductos
-     */
     private final ControlStockMain parent;
     private List<Producto> productos; 
     private String ultimoTextField = "";
     private boolean soloStockMin = false;
     private final JFileChooser fc;
+    private ResourceBundle rb;
     
     public GenerarReporte(ControlStockMain referenciaMain)
     {
@@ -50,6 +49,7 @@ public class GenerarReporte extends javax.swing.JFrame
         
         initComponents();
         setLocationRelativeTo(null);
+        SetLanguage();
         
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setearTabla("");
@@ -74,6 +74,33 @@ public class GenerarReporte extends javax.swing.JFrame
                 }
             }
         });
+    }
+
+    private void SetLanguage()
+    {
+        rb = LangConfig.getInstance().getResourceBundle();
+        
+        this.setTitle(rb.getString("GenerateReport"));
+        
+        generarReporteButton.setText(rb.getString("GenerateReportButton"));
+        volverButton.setText(rb.getString("Back"));
+        buscarLabel.setText(rb.getString("Search"));
+        productosPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, rb.getString("Products"), javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("sansserif", 1, 12)));
+        formatoPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, rb.getString("Format"), javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("sansserif", 1, 12)));
+        columnasPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, rb.getString("Columns"), javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("sansserif", 1, 12)));
+        productosTodosRadioButton.setText(rb.getString("All"));
+        productosStockMinRadioButton.setText(rb.getString("OnlyMinStock"));
+        productosFiltradosRadioButton.setText(rb.getString("OnlyFiltered"));
+        codigoCheckBox.setText(rb.getString("Code"));
+        nombreCheckBox.setText(rb.getString("Name"));
+        descripcionCheckBox.setText(rb.getString("Description"));
+        stockCheckBox.setText(rb.getString("CurrentStock"));
+        stockMinCheckBox.setText(rb.getString("MinStock"));
+        table.getTableHeader().getColumnModel().getColumn(0).setHeaderValue(rb.getString("Code"));
+        table.getTableHeader().getColumnModel().getColumn(1).setHeaderValue(rb.getString("Name"));
+        table.getTableHeader().getColumnModel().getColumn(2).setHeaderValue(rb.getString("Description"));
+        table.getTableHeader().getColumnModel().getColumn(3).setHeaderValue(rb.getString("CurrentStock"));
+        table.getTableHeader().getColumnModel().getColumn(4).setHeaderValue(rb.getString("MinStock"));
     }
     
     private void abrirDetalleProducto(int row)
@@ -153,7 +180,7 @@ public class GenerarReporte extends javax.swing.JFrame
         table = new javax.swing.JTable();
         volverButton = new javax.swing.JButton();
         buscarTextField = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
+        buscarLabel = new javax.swing.JLabel();
         generarReporteButton = new javax.swing.JButton();
         formatoPanel = new javax.swing.JPanel();
         formatoTxtRadioButton = new javax.swing.JRadioButton();
@@ -229,12 +256,12 @@ public class GenerarReporte extends javax.swing.JFrame
         buscarTextField.setEnabled(false);
         buscarTextField.addInputMethodListener(new java.awt.event.InputMethodListener()
         {
+            public void caretPositionChanged(java.awt.event.InputMethodEvent evt)
+            {
+            }
             public void inputMethodTextChanged(java.awt.event.InputMethodEvent evt)
             {
                 buscarTextFieldInputMethodTextChanged(evt);
-            }
-            public void caretPositionChanged(java.awt.event.InputMethodEvent evt)
-            {
             }
         });
         buscarTextField.addKeyListener(new java.awt.event.KeyAdapter()
@@ -249,7 +276,7 @@ public class GenerarReporte extends javax.swing.JFrame
             }
         });
 
-        jLabel1.setText("Buscar:");
+        buscarLabel.setText("Buscar:");
 
         generarReporteButton.setBackground(new java.awt.Color(51, 153, 0));
         generarReporteButton.setText("Generar reporte");
@@ -262,6 +289,7 @@ public class GenerarReporte extends javax.swing.JFrame
         });
 
         formatoPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Formato"));
+        formatoPanel.setName("Formato"); // NOI18N
 
         formatoButtonGroup.add(formatoTxtRadioButton);
         formatoTxtRadioButton.setSelected(true);
@@ -291,6 +319,7 @@ public class GenerarReporte extends javax.swing.JFrame
         );
 
         productosPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Productos"));
+        productosPanel.setName("Productos"); // NOI18N
 
         productosButtonGroup.add(productosTodosRadioButton);
         productosTodosRadioButton.setSelected(true);
@@ -345,6 +374,7 @@ public class GenerarReporte extends javax.swing.JFrame
         );
 
         columnasPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Columnas"));
+        columnasPanel.setName("Columnas"); // NOI18N
 
         codigoCheckBox.setSelected(true);
         codigoCheckBox.setText("Código");
@@ -403,7 +433,7 @@ public class GenerarReporte extends javax.swing.JFrame
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
+                        .addComponent(buscarLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
@@ -432,7 +462,7 @@ public class GenerarReporte extends javax.swing.JFrame
                                 .addGap(0, 101, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel1)))
+                                    .addComponent(buscarLabel)))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(volverButton)
                                 .addGap(0, 0, Short.MAX_VALUE))))
@@ -442,9 +472,14 @@ public class GenerarReporte extends javax.swing.JFrame
                             .addComponent(columnasPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(formatoPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 182, Short.MAX_VALUE))
         );
+
+        formatoPanel.getAccessibleContext().setAccessibleName("");
+        formatoPanel.getAccessibleContext().setAccessibleDescription("");
+        productosPanel.getAccessibleContext().setAccessibleName("");
+        columnasPanel.getAccessibleContext().setAccessibleName("");
+        columnasPanel.getAccessibleContext().setAccessibleDescription("");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -488,7 +523,7 @@ public class GenerarReporte extends javax.swing.JFrame
         
         if (!codigoCheckBox.isSelected() && !nombreCheckBox.isSelected() && !descripcionCheckBox.isSelected() && !stockCheckBox.isSelected() && !stockMinCheckBox.isSelected())
         {
-            JOptionPane.showMessageDialog(this, "Error: debe elegir por lo menos una columna.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, rb.getString("NoColumn"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
             return;
         }
         List<Producto> prodReporte = new ArrayList<>();
@@ -524,14 +559,14 @@ public class GenerarReporte extends javax.swing.JFrame
         
         if (prodReporte.isEmpty())
         {
-            JOptionPane.showMessageDialog(this, "Error: no hay productos en el listado.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, rb.getString("NoProducts"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
             return;
         }
         
         //aca ya procese los filtros de productos, la lista a exportar esta en la variable prodReporte
 
         
-        String timeLog = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Calendar.getInstance().getTime());
+        String timeLog = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
         fc.setSelectedFile(new File(""));
                 
         if (formatoTxtRadioButton.isSelected()) //TXT-------------------------
@@ -539,7 +574,7 @@ public class GenerarReporte extends javax.swing.JFrame
             BufferedWriter writer = null;
             try 
             {
-                FileNameExtensionFilter filter = new FileNameExtensionFilter("Archivo de texto", "txt");
+                FileNameExtensionFilter filter = new FileNameExtensionFilter(rb.getString("TextFile"), "txt");
                 fc.setFileFilter(filter);
                 int res = fc.showSaveDialog(this);
                 if (res != JFileChooser.APPROVE_OPTION)
@@ -554,40 +589,40 @@ public class GenerarReporte extends javax.swing.JFrame
                 }
                 if (f.exists())
                 {
-                    int showConfirmDialog = JOptionPane.showConfirmDialog(this, "El archivo ya existe, está seguro que desea reemplazarlo?", "Reemplazar", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+                    int showConfirmDialog = JOptionPane.showConfirmDialog(this, rb.getString("FileExists"), rb.getString("Replace"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
                     if (showConfirmDialog != JOptionPane.YES_OPTION)
                     {
                         return;
                     }
                 }
                 writer = new BufferedWriter(new FileWriter(f));
-                writer.write("Control De Stock\r\nReporte de productos (" + timeLog + ")\r\n\r\n");
+                writer.write(rb.getString("Title") + "\r\n"+ rb.getString("ProductReport") + " (" + timeLog + ")\r\n\r\n");
                 
                 if (productosTodosRadioButton.isSelected())
                 {
-                    writer.write("Listado de todos los productos\r\n");
+                    writer.write(rb.getString("AllList") + "\r\n");
                 }
                 else if (productosStockMinRadioButton.isSelected())
                 {
-                    writer.write("Listado de productos en stock minimo\r\n");
+                    writer.write(rb.getString("MinStockList") + "\r\n");
                 } 
                 else
                 {
-                    writer.write("Listado de productos filtrados por palabra: \"" + buscarTextField.getText() + "\"\r\n");
+                    writer.write(rb.getString("FilteredList") +"\"" + buscarTextField.getText() + "\"\r\n");
                 }
                 
-                writer.write("Cantidad de productos: " + prodReporte.size() + "\r\n\r\n");
+                writer.write(rb.getString("ProductAmount") + prodReporte.size() + "\r\n\r\n");
                 
                 if (codigoCheckBox.isSelected())
-                    writer.write(padRight("Codigo", 10) + "\t");
+                    writer.write(padRight(rb.getString("Code"), 10) + "\t");
                 if (nombreCheckBox.isSelected())
-                    writer.write(padRight("Nombre", 20) + "\t");
+                    writer.write(padRight(rb.getString("Name"), 20) + "\t");
                 if (descripcionCheckBox.isSelected())
-                    writer.write(padRight("Descripcion", 25) + "\t");
+                    writer.write(padRight(rb.getString("Description"), 25) + "\t");
                 if (stockCheckBox.isSelected())
-                    writer.write(padRight("Stock", 10) + "\t");
+                    writer.write(padRight(rb.getString("CurrentStock"), 10) + "\t");
                 if (stockMinCheckBox.isSelected())
-                    writer.write(padRight("Stock min.", 10) + "\t");
+                    writer.write(padRight(rb.getString("MinStock"), 10) + "\t");
                 
                 writer.write("\r\n");
                 
@@ -614,13 +649,13 @@ public class GenerarReporte extends javax.swing.JFrame
                     
                     writer.write("\r\n");
                 }
-                JOptionPane.showMessageDialog(this, "Archivo generado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, rb.getString("FileSuccess"), rb.getString("Success"), JOptionPane.INFORMATION_MESSAGE);
                 
             } 
             catch (Exception e) 
             {
                 //e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error al generar reporte.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, rb.getString("FileError"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
             } 
             finally 
             {
@@ -657,7 +692,7 @@ public class GenerarReporte extends javax.swing.JFrame
             
             try 
             {
-                FileNameExtensionFilter filter = new FileNameExtensionFilter("Archivo CSV (Excel)", "csv");
+                FileNameExtensionFilter filter = new FileNameExtensionFilter(rb.getString("FileCSV"), "csv");
                 fc.setFileFilter(filter);
                 int res = fc.showSaveDialog(this);
                 if (res != JFileChooser.APPROVE_OPTION)
@@ -672,7 +707,7 @@ public class GenerarReporte extends javax.swing.JFrame
                 }
                 if (f.exists())
                 {
-                    int showConfirmDialog = JOptionPane.showConfirmDialog(this, "El archivo ya existe, está seguro que desea reemplazarlo?", "Reemplazar", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+                    int showConfirmDialog = JOptionPane.showConfirmDialog(this, rb.getString("FileExists"), rb.getString("Replace"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
                     if (showConfirmDialog != JOptionPane.YES_OPTION)
                     {
                         return;
@@ -680,33 +715,33 @@ public class GenerarReporte extends javax.swing.JFrame
                 }
 
                 writer = new BufferedWriter(new FileWriter(f));
-                writer.write("Control De Stock\r\nReporte de productos (" + timeLog + ")\r\n\r\n");
+                writer.write(rb.getString("Title") + "\r\n"+ rb.getString("ProductReport") + " (" + timeLog + ")\r\n\r\n");
                 
                 if (productosTodosRadioButton.isSelected())
                 {
-                    writer.write("Listado de todos los productos\r\n\r\n");
+                    writer.write(rb.getString("AllList") + "\r\n\r\n");
                 }
                 else if (productosStockMinRadioButton.isSelected())
                 {
-                    writer.write("Listado de productos en stock minimo\r\n\r\n");
+                    writer.write(rb.getString("MinStockList") + "\r\n\r\n");
                 } 
                 else
                 {
-                    writer.write("Listado de productos filtrados por palabra: "+ sep + "\"" + buscarTextField.getText() + "\"\r\n");
+                    writer.write(rb.getString("FilteredList") + sep + "\"" + buscarTextField.getText() + "\"\r\n");
                 }
                 
-                writer.write("Cantidad de productos: " + prodReporte.size() + "\r\n\r\n");
+                writer.write(rb.getString("ProductAmount")  + prodReporte.size() + "\r\n\r\n");
                 
                 if (codigoCheckBox.isSelected())
-                    writer.write("Codigo" + sep);
+                    writer.write(rb.getString("Code") + sep);
                 if (nombreCheckBox.isSelected())
-                    writer.write("Nombre" + sep);
+                    writer.write(rb.getString("Name") + sep);
                 if (descripcionCheckBox.isSelected())
-                    writer.write("Descripcion" + sep);
+                    writer.write(rb.getString("Description") + sep);
                 if (stockCheckBox.isSelected())
-                    writer.write("Stock" + sep);
+                    writer.write(rb.getString("CurrentStock") + sep);
                 if (stockMinCheckBox.isSelected())
-                    writer.write("Stock min." + sep);
+                    writer.write(rb.getString("MinStock") + sep);
                 
                 writer.write("\r\n");
                 
@@ -733,13 +768,13 @@ public class GenerarReporte extends javax.swing.JFrame
                     
                     writer.write("\r\n");
                 }
-                JOptionPane.showMessageDialog(this, "Archivo generado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, rb.getString("FileSuccess"), rb.getString("Success"), JOptionPane.INFORMATION_MESSAGE);
                 
             } 
             catch (Exception e) 
             {
                 //e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error al generar reporte.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, rb.getString("FileError"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
             } 
             finally 
             {
@@ -807,6 +842,7 @@ public class GenerarReporte extends javax.swing.JFrame
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel buscarLabel;
     private javax.swing.JTextField buscarTextField;
     private javax.swing.JCheckBox codigoCheckBox;
     private javax.swing.JPanel columnasPanel;
@@ -816,7 +852,6 @@ public class GenerarReporte extends javax.swing.JFrame
     private javax.swing.JPanel formatoPanel;
     private javax.swing.JRadioButton formatoTxtRadioButton;
     private javax.swing.JButton generarReporteButton;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JCheckBox nombreCheckBox;
     private javax.swing.ButtonGroup productosButtonGroup;

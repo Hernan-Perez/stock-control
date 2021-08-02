@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -33,12 +34,13 @@ public class VerProductos extends javax.swing.JFrame
     private List<Producto> productos; 
     private String ultimoTextField = "";
     private boolean soloStockMin = false;
-    
+    private ResourceBundle rb;
     public VerProductos(ControlStockMain referenciaMain)
     {
         parent = referenciaMain;
         initComponents();
         setLocationRelativeTo(null);
+        SetLanguage();
         
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setearTabla("");
@@ -71,6 +73,23 @@ public class VerProductos extends javax.swing.JFrame
                 }
             }
         });
+    }
+    
+    private void SetLanguage()
+    {
+        rb = LangConfig.getInstance().getResourceBundle();
+        
+        this.setTitle(rb.getString("ViewProducts"));
+        
+        filtrarButton.setText(rb.getString("Filter"));
+        volverButton.setText(rb.getString("Back"));
+        buscarLabel.setText(rb.getString("Search"));
+        stockMinimoCheckBox.setText(rb.getString("MinStockCheck"));
+        table.getTableHeader().getColumnModel().getColumn(0).setHeaderValue(rb.getString("Code"));
+        table.getTableHeader().getColumnModel().getColumn(1).setHeaderValue(rb.getString("Name"));
+        table.getTableHeader().getColumnModel().getColumn(2).setHeaderValue(rb.getString("Description"));
+        table.getTableHeader().getColumnModel().getColumn(3).setHeaderValue(rb.getString("CurrentStock"));
+        table.getTableHeader().getColumnModel().getColumn(4).setHeaderValue(rb.getString("MinStock"));
     }
     
     private void abrirDetalleProducto(int row)
@@ -158,7 +177,7 @@ public class VerProductos extends javax.swing.JFrame
         table = new javax.swing.JTable();
         volverButton = new javax.swing.JButton();
         buscarTextField = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
+        buscarLabel = new javax.swing.JLabel();
         stockMinimoCheckBox = new javax.swing.JCheckBox();
         filtrarButton = new javax.swing.JButton();
 
@@ -241,7 +260,7 @@ public class VerProductos extends javax.swing.JFrame
             }
         });
 
-        jLabel1.setText("Buscar:");
+        buscarLabel.setText("Buscar:");
 
         stockMinimoCheckBox.setText("Listar solo productos con stock mínimo");
         stockMinimoCheckBox.addActionListener(new java.awt.event.ActionListener()
@@ -275,7 +294,7 @@ public class VerProductos extends javax.swing.JFrame
                         .addComponent(stockMinimoCheckBox)
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
+                        .addComponent(buscarLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -291,7 +310,7 @@ public class VerProductos extends javax.swing.JFrame
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(volverButton)
                     .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1)
+                    .addComponent(buscarLabel)
                     .addComponent(filtrarButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(stockMinimoCheckBox)
@@ -368,9 +387,9 @@ public class VerProductos extends javax.swing.JFrame
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel buscarLabel;
     private javax.swing.JTextField buscarTextField;
     private javax.swing.JButton filtrarButton;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JCheckBox stockMinimoCheckBox;
     private javax.swing.JTable table;

@@ -8,6 +8,7 @@ package controlstock;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
@@ -34,7 +35,7 @@ public class CargarStock extends javax.swing.JFrame
     
     private final List<Integer> valor_carga;
     private final List<Integer> valor_row;
-    
+    private ResourceBundle rb;
     
     public CargarStock(ControlStockMain referenciaMain)
     {
@@ -42,6 +43,7 @@ public class CargarStock extends javax.swing.JFrame
         
         initComponents();
         setLocationRelativeTo(null);
+        SetLanguage();
         
         valor_carga = new ArrayList<>();
         valor_row = new ArrayList<>();
@@ -76,6 +78,26 @@ public class CargarStock extends javax.swing.JFrame
         sorter.setSortKeys(sortKeys);
         
         
+    }
+    
+    private void SetLanguage()
+    {
+        rb = LangConfig.getInstance().getResourceBundle();
+        
+        this.setTitle(rb.getString("ChangeStock"));
+        
+        guardarCambiosButton.setText(rb.getString("SaveChanges"));
+        filtrarButton.setText(rb.getString("Filter"));
+        volverButton.setText(rb.getString("Back"));
+        buscarLabel.setText(rb.getString("Search"));
+        ayudaButton.setText(rb.getString("Help"));
+        stockMinimoCheckBox.setText(rb.getString("MinStockCheck"));
+        table.getTableHeader().getColumnModel().getColumn(0).setHeaderValue(rb.getString("Code"));
+        table.getTableHeader().getColumnModel().getColumn(1).setHeaderValue(rb.getString("Name"));
+        table.getTableHeader().getColumnModel().getColumn(2).setHeaderValue(rb.getString("Description"));
+        table.getTableHeader().getColumnModel().getColumn(3).setHeaderValue(rb.getString("CurrentStock"));
+        table.getTableHeader().getColumnModel().getColumn(4).setHeaderValue(rb.getString("MinStock"));
+        table.getTableHeader().getColumnModel().getColumn(5).setHeaderValue(rb.getString("LoadValue"));
     }
 
     private void setValorCargaPorCodigo(int codigo, int valor)
@@ -179,7 +201,7 @@ public class CargarStock extends javax.swing.JFrame
         table = new javax.swing.JTable();
         volverButton = new javax.swing.JButton();
         buscarTextField = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
+        buscarLabel = new javax.swing.JLabel();
         stockMinimoCheckBox = new javax.swing.JCheckBox();
         guardarCambiosButton = new javax.swing.JButton();
         ayudaButton = new javax.swing.JButton();
@@ -281,7 +303,7 @@ public class CargarStock extends javax.swing.JFrame
             }
         });
 
-        jLabel1.setText("Buscar:");
+        buscarLabel.setText("Buscar:");
 
         stockMinimoCheckBox.setText("Ver solo productos con stock mínimo");
         stockMinimoCheckBox.addActionListener(new java.awt.event.ActionListener()
@@ -333,7 +355,7 @@ public class CargarStock extends javax.swing.JFrame
                         .addGap(6, 6, 6)
                         .addComponent(stockMinimoCheckBox))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
+                        .addComponent(buscarLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -354,7 +376,7 @@ public class CargarStock extends javax.swing.JFrame
                         .addGap(16, 16, 16)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(buscarTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1)
+                            .addComponent(buscarLabel)
                             .addComponent(filtrarButton))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(stockMinimoCheckBox)
@@ -444,7 +466,7 @@ public class CargarStock extends javax.swing.JFrame
         // TODO add your handling code here:
         if (!HuboCambios())
         {
-            JOptionPane.showMessageDialog(this, "No hay cambios de stock a realizar.", "No hay cambios", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, rb.getString("NoChanges"), rb.getString("NoChangesT"), JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         
@@ -461,7 +483,7 @@ public class CargarStock extends javax.swing.JFrame
                 {
                     if (productos.get(c).getStock() + valor_carga.get(i) < 0)
                     {
-                        JOptionPane.showMessageDialog(this, "Error: producto (cod: " + valor_row.get(i) + ") en stock negativo.\nSe canceló la acción.", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(this, rb.getString("NegativeStockError1") + valor_row.get(i) + rb.getString("NegativeStockError2"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
                         return;
                     }
                     break;
@@ -491,14 +513,14 @@ public class CargarStock extends javax.swing.JFrame
             JOptionPane.showMessageDialog(this, "SQL ERROR", "Error", JOptionPane.ERROR_MESSAGE);
         }
         setearTablaLimpia(ultimoTextField);
-        JOptionPane.showMessageDialog(this, "Se actualizó el stock con exito.", "Correcto", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, rb.getString("StockUpdateSuccess"), rb.getString("Success"), JOptionPane.INFORMATION_MESSAGE);
         //Volver(false);        
     }//GEN-LAST:event_guardarCambiosButtonActionPerformed
 
     private void ayudaButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ayudaButtonActionPerformed
     {//GEN-HEADEREND:event_ayudaButtonActionPerformed
         // TODO add your handling code here:
-        JOptionPane.showMessageDialog(this, "<html><body><div align='center'>Para cada producto que deseé cambiar el stock,<br>utilice el campo bajo la columna CARGA para<br>indicar la cantidad que se agrega<br>o se quita al stock.<br>Para quitar stock de un producto utilice<br>valores negativos (si se intenta<br>restar una cantidad mayor a la existente<br>el programa lanzará un error).</div></body></html>", "Ayuda", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, rb.getString("HelpDesc"), rb.getString("Help"), JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_ayudaButtonActionPerformed
 
     private void filtrarButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_filtrarButtonActionPerformed
@@ -526,7 +548,7 @@ public class CargarStock extends javax.swing.JFrame
     {
         if (comprobar && HuboCambios())
         {
-            int showConfirmDialog = JOptionPane.showConfirmDialog(this, "Está seguro que cancelar la carga de stock?", "Volver", JOptionPane.OK_CANCEL_OPTION);
+            int showConfirmDialog = JOptionPane.showConfirmDialog(this, rb.getString("CancelStock"), rb.getString("Back"), JOptionPane.OK_CANCEL_OPTION);
             if (showConfirmDialog != JOptionPane.YES_OPTION)
             {
                 return;
@@ -542,10 +564,10 @@ public class CargarStock extends javax.swing.JFrame
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ayudaButton;
+    private javax.swing.JLabel buscarLabel;
     private javax.swing.JTextField buscarTextField;
     private javax.swing.JButton filtrarButton;
     private javax.swing.JButton guardarCambiosButton;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JCheckBox stockMinimoCheckBox;
     private javax.swing.JTable table;

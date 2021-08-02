@@ -5,7 +5,8 @@
  */
 package controlstock;
 
-import javax.swing.JFileChooser;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import javax.swing.JOptionPane;
 
 /**
@@ -14,11 +15,9 @@ import javax.swing.JOptionPane;
  */
 public final class ControlStockMain extends javax.swing.JFrame
 {
-    public static int SIGUIENTE_CODIGO = 1;
     private static final String BD_NAME = "stock-control-db.db";
-    private final JFileChooser fc;
-    private final Database db;
-    
+    private Database db;
+    private ResourceBundle rb;
     /**
      * Creates new form ControlStock
      */
@@ -31,18 +30,44 @@ public final class ControlStockMain extends javax.swing.JFrame
         setLocationRelativeTo(null);
         
         
-        fc = new JFileChooser();
-        
-        db = new Database();
-        if (!db.init(BD_NAME))
-        {
-            JOptionPane.showMessageDialog(this, "No se encuentra la base de datos", "Error", JOptionPane.ERROR_MESSAGE);
-            System.exit(1);
-        }
+        SetLanguage();
+        InitDatabase();
         
         //CargarTestData();
     }
 
+    private void InitDatabase()
+    {
+        db = new Database();
+        if (!db.init(BD_NAME))
+        {
+            JOptionPane.showMessageDialog(this, rb.getString("DbNotFound"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
+    }
+    
+    private void SetLanguage()
+    {
+        rb = LangConfig.getInstance().getResourceBundle();
+        
+        this.setTitle(rb.getString("Title"));
+        tituloLabel.setText(rb.getString("Title"));
+        controlLabel.setText(rb.getString("Control"));
+        cargaLabel.setText(rb.getString("Load"));
+        verProductosButton.setText(rb.getString("ViewProducts"));
+        generarReporteButton.setText(rb.getString("GenerateReport"));
+        modificarProductosButton.setText(rb.getString("EditProducts"));
+        modificarStockButton.setText(rb.getString("ChangeStock"));
+        salirButton.setText(rb.getString("Exit"));
+        salirMenuItem.setText(rb.getString("Exit"));
+        archivoMenu.setText(rb.getString("File"));
+        ayudaMenu.setText(rb.getString("Help"));
+        acercaDeMenuItem.setText(rb.getString("About"));
+        langMenu.setText(rb.getString("Language"));
+        
+    }
+
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -68,6 +93,9 @@ public final class ControlStockMain extends javax.swing.JFrame
         salirMenuItem = new javax.swing.JMenuItem();
         ayudaMenu = new javax.swing.JMenu();
         acercaDeMenuItem = new javax.swing.JMenuItem();
+        langMenu = new javax.swing.JMenu();
+        englishMenuItem = new javax.swing.JMenuItem();
+        españolMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Control De Stock");
@@ -209,6 +237,30 @@ public final class ControlStockMain extends javax.swing.JFrame
 
         jMenuBar1.add(ayudaMenu);
 
+        langMenu.setText("Lenguaje");
+
+        englishMenuItem.setText("English");
+        englishMenuItem.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                englishMenuItemActionPerformed(evt);
+            }
+        });
+        langMenu.add(englishMenuItem);
+
+        españolMenuItem.setText("Español");
+        españolMenuItem.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                españolMenuItemActionPerformed(evt);
+            }
+        });
+        langMenu.add(españolMenuItem);
+
+        jMenuBar1.add(langMenu);
+
         setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -305,8 +357,23 @@ public final class ControlStockMain extends javax.swing.JFrame
     private void acercaDeMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_acercaDeMenuItemActionPerformed
     {//GEN-HEADEREND:event_acercaDeMenuItemActionPerformed
         // TODO add your handling code here:
-        JOptionPane.showMessageDialog(this, "<html><body><div align='center'>Por Hernán Alberto Pérez <br><br>hernanperez.dev@gmail.com</html>", "Acerca de", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, rb.getString("AboutDesc"), rb.getString("About"), JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_acercaDeMenuItemActionPerformed
+
+    private void englishMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_englishMenuItemActionPerformed
+    {//GEN-HEADEREND:event_englishMenuItemActionPerformed
+        // TODO add your handling code here:
+        LangConfig.getInstance().SetLanguage("en");
+        SetLanguage();
+        
+    }//GEN-LAST:event_englishMenuItemActionPerformed
+
+    private void españolMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_españolMenuItemActionPerformed
+    {//GEN-HEADEREND:event_españolMenuItemActionPerformed
+        // TODO add your handling code here:
+        LangConfig.getInstance().SetLanguage("es");
+        SetLanguage();
+    }//GEN-LAST:event_españolMenuItemActionPerformed
    
     
     /**
@@ -357,7 +424,7 @@ public final class ControlStockMain extends javax.swing.JFrame
     
     private void Salir()
     {
-        int showConfirmDialog = JOptionPane.showConfirmDialog(this, "Esta seguro que desea salir?", "Salir", JOptionPane.OK_CANCEL_OPTION);
+        int showConfirmDialog = JOptionPane.showConfirmDialog(this, rb.getString("ExitConfirm"), rb.getString("Exit"), JOptionPane.OK_CANCEL_OPTION);
         if (showConfirmDialog == JOptionPane.YES_OPTION)
         {
             System.exit(0);
@@ -426,10 +493,13 @@ public final class ControlStockMain extends javax.swing.JFrame
     private javax.swing.JMenu ayudaMenu;
     private javax.swing.JLabel cargaLabel;
     private javax.swing.JLabel controlLabel;
+    private javax.swing.JMenuItem englishMenuItem;
+    private javax.swing.JMenuItem españolMenuItem;
     private javax.swing.JButton generarReporteButton;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JMenu langMenu;
     private javax.swing.JButton modificarProductosButton;
     private javax.swing.JButton modificarStockButton;
     private javax.swing.JButton salirButton;

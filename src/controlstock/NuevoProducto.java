@@ -6,6 +6,7 @@
 package controlstock;
 
 import java.sql.SQLException;
+import java.util.ResourceBundle;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -20,19 +21,34 @@ public class NuevoProducto extends javax.swing.JFrame
     private final JFrame parent;
     private final Database db;
     private boolean huboCambios = false;
-   
+    private ResourceBundle rb;
     
     public NuevoProducto(JFrame parent, Database db)
     {
         initComponents();
         setLocationRelativeTo(null);
         
+        SetLanguage();
+        
         this.parent = parent;
         this.db = db;
         
         cancelarButton.requestFocus();
-        codigoTextField.setText("" + ControlStockMain.SIGUIENTE_CODIGO);
         
+    }
+    
+    private void SetLanguage()
+    {
+        rb = LangConfig.getInstance().getResourceBundle();
+        
+        this.setTitle(rb.getString("NewProductTitle"));
+        
+        cancelarButton.setText(rb.getString("Cancel"));
+        crearProductoButton.setText(rb.getString("CreateProduct"));
+        nombreLabel.setText(rb.getString("Name"));
+        descripcionLabel.setText(rb.getString("DescriptionOp"));
+        currentStockLabel.setText(rb.getString("CurrentStock"));
+        minStockLabel.setText(rb.getString("MinStock"));
     }
 
     /**
@@ -45,18 +61,16 @@ public class NuevoProducto extends javax.swing.JFrame
     private void initComponents()
     {
 
-        jLabel1 = new javax.swing.JLabel();
+        nombreLabel = new javax.swing.JLabel();
         nombreTextField = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
+        descripcionLabel = new javax.swing.JLabel();
         descripcionTextField = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
+        currentStockLabel = new javax.swing.JLabel();
         stockActualTextField = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
+        minStockLabel = new javax.swing.JLabel();
         stockMinimoTextField = new javax.swing.JTextField();
         cancelarButton = new javax.swing.JButton();
         crearProductoButton = new javax.swing.JButton();
-        jLabel5 = new javax.swing.JLabel();
-        codigoTextField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Crear nuevo producto");
@@ -69,7 +83,7 @@ public class NuevoProducto extends javax.swing.JFrame
             }
         });
 
-        jLabel1.setText("Nombre:");
+        nombreLabel.setText("Nombre:");
 
         nombreTextField.addKeyListener(new java.awt.event.KeyAdapter()
         {
@@ -79,7 +93,7 @@ public class NuevoProducto extends javax.swing.JFrame
             }
         });
 
-        jLabel2.setText("<html>Descripción:<br>(opcional)</html>");
+        descripcionLabel.setText("<html>Descripción:<br>(opcional)</html>");
 
         descripcionTextField.addKeyListener(new java.awt.event.KeyAdapter()
         {
@@ -89,7 +103,7 @@ public class NuevoProducto extends javax.swing.JFrame
             }
         });
 
-        jLabel3.setText("Stock actual:");
+        currentStockLabel.setText("Stock actual:");
 
         stockActualTextField.setText("0");
         stockActualTextField.addFocusListener(new java.awt.event.FocusAdapter()
@@ -114,7 +128,7 @@ public class NuevoProducto extends javax.swing.JFrame
             }
         });
 
-        jLabel4.setText("Stock mínimo:");
+        minStockLabel.setText("Stock mínimo:");
 
         stockMinimoTextField.setText("0");
         stockMinimoTextField.addFocusListener(new java.awt.event.FocusAdapter()
@@ -158,18 +172,6 @@ public class NuevoProducto extends javax.swing.JFrame
             }
         });
 
-        jLabel5.setText("Código:");
-
-        codigoTextField.setEnabled(false);
-        codigoTextField.setFocusable(false);
-        codigoTextField.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                codigoTextFieldActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -178,58 +180,56 @@ public class NuevoProducto extends javax.swing.JFrame
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(crearProductoButton)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(descripcionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(nombreLabel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(cancelarButton))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(descripcionTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 370, Short.MAX_VALUE)
+                            .addComponent(nombreTextField))
+                        .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(descripcionTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 351, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(nombreTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 351, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGap(45, 45, 45)
-                        .addComponent(jLabel3)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(45, 45, 45)
+                                .addComponent(currentStockLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(stockActualTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 174, Short.MAX_VALUE)
+                                .addComponent(minStockLabel))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(crearProductoButton)
+                                .addGap(0, 0, Short.MAX_VALUE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(stockActualTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(stockMinimoTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(45, 45, 45))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(jLabel5)
-                        .addGap(32, 32, 32)
-                        .addComponent(codigoTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(stockMinimoTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(45, 45, 45))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(cancelarButton)
+                                .addContainerGap())))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(25, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(codigoTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
+                    .addComponent(nombreLabel)
                     .addComponent(nombreTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(descripcionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(descripcionTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(10, 10, 10)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
+                    .addComponent(currentStockLabel)
                     .addComponent(stockActualTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(stockMinimoTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4))
+                    .addComponent(minStockLabel))
                 .addGap(33, 33, 33)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(cancelarButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(crearProductoButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(crearProductoButton)
+                    .addComponent(cancelarButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -262,7 +262,7 @@ public class NuevoProducto extends javax.swing.JFrame
     {//GEN-HEADEREND:event_crearProductoButtonActionPerformed
         if (!ValidarData())
         {
-            JOptionPane.showMessageDialog(this, "Error al validar data", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, rb.getString("ValidationError"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
             return;
         }
         
@@ -300,7 +300,7 @@ public class NuevoProducto extends javax.swing.JFrame
             }
             catch (NumberFormatException e) 
             {
-                 JOptionPane.showMessageDialog(this, "Error: El numero ingresado en STOCK ACTUAL no es valido.", "Error", JOptionPane.ERROR_MESSAGE);
+                 JOptionPane.showMessageDialog(this, rb.getString("StockValidationError"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
                  return false;
             }
         }
@@ -322,7 +322,7 @@ public class NuevoProducto extends javax.swing.JFrame
             }
             catch (NumberFormatException e) 
             {
-                 JOptionPane.showMessageDialog(this, "Error: El numero ingresado en STOCK MINIMO no es valido.", "Error", JOptionPane.ERROR_MESSAGE);
+                 JOptionPane.showMessageDialog(this, rb.getString("MinStockValidationError"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
                  return false;
             }
         }
@@ -332,7 +332,7 @@ public class NuevoProducto extends javax.swing.JFrame
         
         if (nombreTextField.getText().equals(""))
         {
-            JOptionPane.showMessageDialog(this, "Error: Ingrese un nombre valido para el producto.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, rb.getString("NameValidationError"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
             return false;
         }
         else
@@ -341,7 +341,7 @@ public class NuevoProducto extends javax.swing.JFrame
             {
                 if (db.productoExisteByNombre(nombreTextField.getText()))
                 {
-                    JOptionPane.showMessageDialog(this, "Error: Ya existe un producto con el mismo nombre.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, rb.getString("DuplicateNameError"), rb.getString("Error"), JOptionPane.ERROR_MESSAGE);
                     return false;
                 }
             } catch (SQLException ex)
@@ -353,11 +353,6 @@ public class NuevoProducto extends javax.swing.JFrame
     }
     
     
-    private void codigoTextFieldActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_codigoTextFieldActionPerformed
-    {//GEN-HEADEREND:event_codigoTextFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_codigoTextFieldActionPerformed
-
     private void stockActualTextFieldFocusLost(java.awt.event.FocusEvent evt)//GEN-FIRST:event_stockActualTextFieldFocusLost
     {//GEN-HEADEREND:event_stockActualTextFieldFocusLost
         // TODO add your handling code here:
@@ -408,7 +403,7 @@ public class NuevoProducto extends javax.swing.JFrame
     {
         if (huboCambios && comprobar)
         {
-            int showConfirmDialog = JOptionPane.showConfirmDialog(this, "Está seguro que desea cancelar la creación del producto?", "Cancelar", JOptionPane.OK_CANCEL_OPTION);
+            int showConfirmDialog = JOptionPane.showConfirmDialog(this, rb.getString("CancelConfirmation"), rb.getString("Cancel"), JOptionPane.OK_CANCEL_OPTION);
             if (showConfirmDialog != JOptionPane.YES_OPTION)
             {
                 return;
@@ -424,14 +419,12 @@ public class NuevoProducto extends javax.swing.JFrame
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelarButton;
-    private javax.swing.JTextField codigoTextField;
     private javax.swing.JButton crearProductoButton;
+    private javax.swing.JLabel currentStockLabel;
+    private javax.swing.JLabel descripcionLabel;
     private javax.swing.JTextField descripcionTextField;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel minStockLabel;
+    private javax.swing.JLabel nombreLabel;
     private javax.swing.JTextField nombreTextField;
     private javax.swing.JTextField stockActualTextField;
     private javax.swing.JTextField stockMinimoTextField;
